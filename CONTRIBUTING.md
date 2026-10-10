@@ -2,7 +2,7 @@
 
 Thank you for taking the time to improve GitHub Show Reviewer Bridge.
 
-This project aims to preserve the original extension's UI and behavior as much as possible. Please keep changes focused and preserve the existing reviewer display and default layout.
+This project is a fork of [araitaiga/github_show_reviewer](https://github.com/araitaiga/github_show_reviewer) and aims to preserve the original extension's UI and behavior as much as possible. Please keep changes focused and preserve the existing reviewer display and default layout.
 
 ## Discuss UI and behavior changes first
 
