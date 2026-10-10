@@ -179,6 +179,10 @@ The host files are stored in:
 
 For development installations, use the registration name ending in `.development` and the `development` directory instead of `production`.
 
+## 🤝 Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before starting implementation, especially for changes to the UI or behavior.
+
 ## 📄 License and Credits
 
 This project is a modified fork of [araitaiga/github_show_reviewer](https://github.com/araitaiga/github_show_reviewer), originally created by Taiga Arai. This fork adds the TypeScript implementation and GitHub CLI bridge and is distributed separately from the original Chrome Web Store extension.

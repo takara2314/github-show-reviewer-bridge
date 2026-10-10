@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdtemp, readFile, writeFile, rm, copyFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, rm, copyFile, symlink, rename } from 'node:fs/promises';
 import { tmpdir, endianness } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
@@ -8,7 +8,7 @@ import { runInNewContext } from 'node:vm';
 import { failure, validateRequest, sanitizeResponse } from '../src/protocol.ts';
 import type { Request } from '../src/protocol.ts';
 import { fetchReviewers } from '../src/native/reviewers.ts';
-import { classifyError, minimalEnvironment } from '../src/native/github-cli.ts';
+import { classifyError, minimalEnvironment, ghRunner } from '../src/native/github-cli.ts';
 
 const request: Request = { version: 1, type: 'getPullRequestReviewers', host: 'github.example.internal', owner: 'platform', repo: 'frontend', pullNumbers: [1, 2] };
 const hosts = [request.host, 'git.other.internal'];
@@ -159,8 +159,20 @@ process.stdin.on('end', () => {
       // Install into an isolated home; never change the user's actual Chrome registration.
       const build = JSON.parse(await readFile('dist/native-host/hosts.json', 'utf8'));
       const mode = build.development ? '--development' : '--production';
-      const output = execFileSync(process.execPath, ['dist/native-host/install.cjs', 'a'.repeat(32), mode, fakeGh], { encoding: 'utf8', env: { ...process.env, HOME: dir } });
+      const stableGh = join(dir, 'gh');
+      await symlink(fakeGh, stableGh);
+      const output = execFileSync(process.execPath, ['dist/native-host/install.cjs', 'a'.repeat(32), mode, stableGh], { encoding: 'utf8', env: { ...process.env, HOME: dir } });
       assert.match(output, /gh version test/);
+      const destination = join(dir, '.local/share/github-show-reviewer-bridge', build.development ? 'development' : 'production');
+      const installedConfig = JSON.parse(await readFile(join(destination, 'config.json'), 'utf8'));
+      assert.equal(installedConfig.ghPath, stableGh);
+      // Simulate an upgrade: remove the old executable and point the stable link at the new one.
+      const upgradedGh = join(dir, 'gh-new-version');
+      await rename(fakeGh, upgradedGh);
+      await rm(stableGh);
+      await symlink(upgradedGh, stableGh);
+      assert.match(execFileSync(installedConfig.ghPath, ['--version'], { encoding: 'utf8' }), /gh version test/);
+      assert.deepEqual(await fetchReviewers(request, ghRunner(installedConfig.ghPath)), success(request));
       const name = 'com.github_show_reviewer.bridge' + (build.development ? '.development' : '');
       const registration = process.platform === 'darwin' ? join(dir, 'Library/Application Support/Google/Chrome/NativeMessagingHosts') : join(dir, '.config/google-chrome/NativeMessagingHosts');
       const manifest = JSON.parse(await readFile(join(registration, name + '.json'), 'utf8'));

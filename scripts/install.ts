@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { accessSync, constants, copyFileSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { accessSync, constants, copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { HOST_NAME, isHostAllowlist } from '../src/protocol.ts';
@@ -32,10 +32,10 @@ function findGitHubCli(suppliedGh?: string): string {
     try { if (!isAbsolute(path)) return false; accessSync(path, constants.X_OK); return true; } catch { return false; }
   });
   if (!ghPath) throw new Error('GitHub CLI not found. Install from https://cli.github.com and rerun with its absolute path.');
-  const executable = realpathSync(ghPath);
-  const version = execFileSync(executable, ['--version'], { encoding: 'utf8', timeout: 5000, maxBuffer: 4096, env: minimalEnvironment() }).split('\n')[0];
-  console.log(`GitHub CLI: ${executable} (${version})`);
-  return executable;
+  // Preserve stable symlinks so package manager upgrades can replace their targets.
+  const version = execFileSync(ghPath, ['--version'], { encoding: 'utf8', timeout: 5000, maxBuffer: 4096, env: minimalEnvironment() }).split('\n')[0];
+  console.log(`GitHub CLI: ${ghPath} (${version})`);
+  return ghPath;
 }
 
 function installationDirectory(mode: string): string {
