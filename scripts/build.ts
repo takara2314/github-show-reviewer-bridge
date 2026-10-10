@@ -19,7 +19,7 @@ await build({ entryPoints: ['src/background.ts', 'src/content.ts'], bundle: true
 await build({ entryPoints: ['src/native/main.ts'], bundle: true, outfile: 'dist/native-host/host.cjs', platform: 'node', format: 'cjs', target: 'node22' });
 await build({ entryPoints: ['scripts/install.ts'], bundle: true, outfile: 'dist/native-host/install.cjs', platform: 'node', format: 'cjs', target: 'node22' });
 for (const file of ['style.css', 'icons']) await cp(file, `dist/extension/${file}`, { recursive: true });
-for (const file of ['README.md', 'privacy-policy.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) await cp(file, `dist/${file}`);
+for (const file of ['README.md', 'CONTRIBUTING.md', 'privacy-policy.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md']) await cp(file, `dist/${file}`);
 
 await cp('licenses', 'dist/extension/licenses', { recursive: true });
 await cp('THIRD_PARTY_NOTICES.md', 'dist/extension/THIRD_PARTY_NOTICES.md');
